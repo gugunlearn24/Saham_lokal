@@ -1,0 +1,42 @@
+version: "1.0.0"
+strategy_name: "IHSG Swing Value-Momentum 1Y+"
+
+evaluation_matrix:
+  fundamental_rules:
+    - id: "RULE_ROE"
+      metric: "roe_percentage"
+      operator: ">="
+      threshold: 12.0
+      severity: "FAIL"
+    - id: "RULE_DER"
+      metric: "der_ratio"
+      operator: "<="
+      threshold: 1.5
+      severity: "WARN"
+    - id: "RULE_NPM"
+      metric: "net_profit_margin"
+      operator: ">"
+      threshold: 5.0
+      severity: "WARN"
+
+  technical_rules:
+    - id: "RULE_WEEKLY_MA"
+      metric: "close_vs_weekly_ma30"
+      operator: ">="
+      threshold: 1.0
+      severity: "FAIL"
+    - id: "RULE_WEEKLY_RSI"
+      metric: "weekly_rsi14"
+      operator: "BETWEEN"
+      range: [40.0, 70.0]
+      severity: "WARN"
+
+  action_matrix:
+    - condition: "fundamental == 'PASS' AND technical == 'PASS'"
+      action: "HOLD"
+    - condition: "fundamental == 'PASS' AND technical == 'WARN'"
+      action: "HOLD"
+    - condition: "fundamental == 'FAIL' OR technical == 'FAIL'"
+      action: "EXIT"
+    - condition: "fundamental == 'WARN' AND technical == 'FAIL'"
+      action: "EXIT"

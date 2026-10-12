@@ -1,0 +1,40 @@
+brokers:
+  - broker_id: "STOCKBIT"
+    broker_name: "Stockbit Sekuritas"
+    delimiter: ","
+    date_format: "YYYY-MM-DD"
+    encoding: "utf-8"
+    mappings:
+      trade_date: "Date"
+      ticker: "Code"
+      action: "Type"
+      shares: "Lot"
+      price_per_share: "Price"
+      broker_fee: "Brokerage Fee"
+      levy_fee: "Exchange Levy"
+      tax_pph: "PPh Final"
+      net_amount: "Total Amount"
+    conversions:
+      lot_multiplier: 100
+      decimal_separator: "."
+      thousand_separator: ","
+
+  - broker_id: "IPOT"
+    broker_name: "Indo Premier Sekuritas"
+    delimiter: ";"
+    date_format: "DD/MM/YYYY"
+    encoding: "utf-8"
+    mappings:
+      trade_date: "Tgl Transaksi"
+      ticker: "Kode Efek"
+      action: "Aktivitas"
+      shares: "Volume Lembar"
+      price_per_share: "Harga"
+      broker_fee: "Komisi"
+      levy_fee: "Levy"
+      tax_pph: "Pajak"
+      net_amount: "Netto"
+    conversions:
+      lot_multiplier: 1
+      decimal_separator: ","
+      thousand_separator: "."
