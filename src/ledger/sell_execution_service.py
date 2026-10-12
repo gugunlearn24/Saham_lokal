@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import uuid
-from typing import Any
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from src.ledger.transaction_service import LedgerValidationError, create_journal_entry
 
@@ -25,6 +24,24 @@ def execute_sell_journal(
     """Create a balanced multi-leg sell entry for a trade execution."""
     if shares <= 0:
         raise ValueError("shares must be positive.")
+
+    try:
+        expected_pph_final = int(
+            (
+                Decimal(shares)
+                * Decimal(str(selling_price_per_share))
+                * Decimal("0.001")
+            ).quantize(Decimal(1), rounding=ROUND_HALF_UP)
+        )
+    except (InvalidOperation, ValueError) as exc:
+        raise LedgerValidationError(
+            "Selling price must be a valid number for PPh Final calculation."
+        ) from exc
+    if pph_final != expected_pph_final:
+        raise LedgerValidationError(
+            f"PPh Final must equal 0.1% of gross transaction value "
+            f"({expected_pph_final} IDR)."
+        )
 
     net_cash_inflow = gross_amount - broker_fee - exchange_levy - pph_final
     realized_gain_loss = gross_amount - cost_basis
@@ -58,19 +75,20 @@ def execute_sell_journal(
             "debit_amount": 0,
             "credit_amount": cost_basis,
         },
-        {
-            "account_id": "REVENUE:REALIZED_GAIN_LOSS",
-            "debit_amount": 0,
-            "credit_amount": max(realized_gain_loss, 0),
-        },
     ]
 
-    if realized_gain_loss < 0:
-        legs[-1] = {
+    if realized_gain_loss > 0:
+        legs.append({
+            "account_id": "REVENUE:REALIZED_GAIN_LOSS",
+            "debit_amount": 0,
+            "credit_amount": realized_gain_loss,
+        })
+    elif realized_gain_loss < 0:
+        legs.append({
             "account_id": "REVENUE:REALIZED_GAIN_LOSS",
             "debit_amount": abs(realized_gain_loss),
             "credit_amount": 0,
-        }
+        })
 
     total_debits = sum(leg["debit_amount"] for leg in legs)
     total_credits = sum(leg["credit_amount"] for leg in legs)
