@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from src.db.connection import get_connection
@@ -56,11 +56,8 @@ def _matching_bank_candidate(trade_row, bank_rows) -> dict[str, Any] | None:
             continue
 
         diff = abs(trade_amount - bank_amount)
-        if diff > ROUNDING_TOLERANCE_IDR:
-            continue
-
         score = (diff, day_gap)
-        if best_match is None or score < (best_distance[0], best_distance[1]):
+        if best_distance is None or score < best_distance:
             best_match = bank_row
             best_distance = score
 
@@ -144,7 +141,7 @@ def reconcile_trades(db_path: str | None = None, rounding_tolerance_idr: int = R
     rows = _fetch_pending_broker_rows(connection)
     bank_rows = _fetch_bank_rows(connection)
 
-    reconciliation_summary = {
+    reconciliation_summary: dict[str, list[dict[str, Any]]] = {
         "matched": [],
         "pending": [],
         "flagged": [],
