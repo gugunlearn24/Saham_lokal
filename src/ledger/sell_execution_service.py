@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from typing import Any
 
 from src.ledger.transaction_service import LedgerValidationError, create_journal_entry
 
@@ -49,7 +50,7 @@ def execute_sell_journal(
     if description is None:
         description = f"Sell {shares} shares of {ticker} at {selling_price_per_share}"
 
-    legs = [
+    legs: list[dict[str, Any]] = [
         {
             "account_id": "ASSET:RDN_CASH",
             "debit_amount": net_cash_inflow,

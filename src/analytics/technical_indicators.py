@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from itertools import pairwise
 
 
 def compute_weekly_ma30(adjusted_close: Sequence[float | int]) -> float:
@@ -21,7 +22,7 @@ def compute_weekly_rsi14(adjusted_close: Sequence[float | int], period: int = 14
 
     gains: list[float] = []
     losses: list[float] = []
-    for previous, current in zip(values, values[1:]):
+    for previous, current in pairwise(values):
         delta = current - previous
         gains.append(max(delta, 0.0))
         losses.append(max(-delta, 0.0))

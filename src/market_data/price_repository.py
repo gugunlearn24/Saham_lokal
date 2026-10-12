@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Callable, Iterable
 from datetime import datetime, timezone
-from typing import Any, Callable, Iterable
+from typing import Any
 
 
 class PriceRepositoryError(RuntimeError):
@@ -50,15 +51,20 @@ def parse_eod_payload(ticker: str, payload: dict[str, Any]) -> list[dict[str, An
         adjusted_close = adj_close_values[index] if index < len(adj_close_values) else raw_close
         if raw_close is None and adjusted_close is None:
             continue
+        raw_close_value = raw_close if raw_close is not None else adjusted_close
+        adjusted_close_value = (
+            adjusted_close if adjusted_close is not None else raw_close
+        )
+        assert raw_close_value is not None and adjusted_close_value is not None
 
         rows.append(
             {
                 "ticker": ticker,
-                "price_date": datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d"),
-                "raw_close": float(raw_close) if raw_close is not None else float(adjusted_close),
-                "adjusted_close": float(adjusted_close) if adjusted_close is not None else float(raw_close),
+                "price_date": datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d"),  # noqa: UP017 -- Python 3.10 compatibility
+                "raw_close": float(raw_close_value),
+                "adjusted_close": float(adjusted_close_value),
                 "volume": volume_values[index] if index < len(volume_values) else None,
-                "fetched_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                "fetched_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),  # noqa: UP017 -- Python 3.10 compatibility
             }
         )
     return rows
@@ -83,7 +89,7 @@ def upsert_market_prices(connection: sqlite3.Connection, rows: Iterable[dict[str
                 float(row["adjusted_close"]),
                 row.get("volume"),
                 row.get("fetched_at")
-                or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),  # noqa: UP017 -- Python 3.10 compatibility
             ),
         )
 

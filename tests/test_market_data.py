@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
+from email.message import Message
 from pathlib import Path
+from typing import Any
 from urllib.error import HTTPError
 
 import pytest
@@ -40,7 +42,7 @@ class _FakeResponse:
         return self._body
 
 
-def _yahoo_payload() -> dict[str, object]:
+def _yahoo_payload() -> dict[str, Any]:
     return {
         "chart": {
             "result": [
@@ -100,7 +102,9 @@ def test_retries_rate_limit_and_server_errors_with_exponential_backoff(
         nonlocal attempts
         attempts += 1
         if attempts == 1:
-            raise HTTPError(request.full_url, status_code, "temporary failure", None, None)
+            raise HTTPError(
+                request.full_url, status_code, "temporary failure", Message(), None
+            )
         return _FakeResponse(_yahoo_payload())
 
     monkeypatch.setattr(market_api_client, "urlopen", fake_urlopen)
@@ -120,7 +124,7 @@ def test_stops_after_third_failed_http_attempt_and_raises_fetch_error(
     def fake_urlopen(request, timeout: int):
         nonlocal attempts
         attempts += 1
-        raise HTTPError(request.full_url, 503, "service unavailable", None, None)
+        raise HTTPError(request.full_url, 503, "service unavailable", Message(), None)
 
     monkeypatch.setattr(market_api_client, "urlopen", fake_urlopen)
     monkeypatch.setattr(market_api_client.time, "sleep", delays.append)
@@ -141,7 +145,7 @@ def test_does_not_retry_client_error_responses(
     def fake_urlopen(request, timeout: int):
         nonlocal attempts
         attempts += 1
-        raise HTTPError(request.full_url, 404, "not found", None, None)
+        raise HTTPError(request.full_url, 404, "not found", Message(), None)
 
     monkeypatch.setattr(market_api_client, "urlopen", fake_urlopen)
     monkeypatch.setattr(market_api_client.time, "sleep", delays.append)

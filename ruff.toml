@@ -1,0 +1,9 @@
+# Abaikan unused import khusus pada seluruh file __init__.py
+[lint.per-file-ignores]
+"**/__init__.py" = ["F401", "RUF022"]
+
+# Abaikan exception type pedantic jika proyek memang menggunakan ValueError secara luas
+[lint]
+ignore = [
+    "TRY004",  # Memperbolehkan ValueError untuk tipe invalid sesuai arsitektur awal
+]

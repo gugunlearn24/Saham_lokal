@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
-from typing import Any
 
 
 def compute_entry_hash(
@@ -33,13 +32,12 @@ def entry_hash_exists(connection: sqlite3.Connection, entry_hash: str) -> bool:
     ).fetchone():
         return True
 
-    if _table_has_column(connection, "reconciliation_staging", "entry_hash"):
-        if connection.execute(
-            "SELECT 1 FROM reconciliation_staging WHERE entry_hash = ? LIMIT 1",
-            (entry_hash,),
-        ).fetchone():
-            return True
-
+    if _table_has_column(connection, "reconciliation_staging", "entry_hash") and connection.execute(
+    "SELECT 1 FROM reconciliation_staging WHERE entry_hash = ? LIMIT 1",
+    (entry_hash,),
+    ).fetchone():
+        return True
+    
     raw_rows = connection.execute(
         "SELECT raw_payload FROM reconciliation_staging WHERE raw_payload IS NOT NULL"
     ).fetchall()

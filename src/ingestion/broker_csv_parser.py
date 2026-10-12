@@ -82,12 +82,15 @@ def _read_rows_from_csv(
 
 def _read_rows_from_xlsx(file_path: str | Path) -> list[dict[str, Any]]:
     try:
-        from openpyxl import load_workbook
+        from openpyxl import load_workbook  # type: ignore[import-untyped]
     except ImportError as exc:
         raise RuntimeError("XLSX support requires openpyxl; install it with: pip install openpyxl") from exc
 
     workbook = load_workbook(file_path, read_only=True, data_only=True)
     sheet = workbook.active
+    if sheet is None:
+        workbook.close()
+        raise ValueError("Workbook has no active worksheet.")
     rows = list(sheet.iter_rows(values_only=True))
     if not rows:
         return []

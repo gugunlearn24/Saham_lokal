@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from openpyxl import Workbook
+from openpyxl import Workbook  # type: ignore[import-untyped]
 
 from src.db.migrator import run_migrations
 from src.ingestion.bank_csv_parser import ingest_bank_statement, load_bank_rows
@@ -145,6 +145,7 @@ def test_load_bank_rows_parses_xlsx_and_signed_parenthesized_amount(
 ) -> None:
     workbook = Workbook()
     sheet = workbook.active
+    assert sheet is not None
     sheet.append(["Transaction Date", "Debit Amount", "Credit Amount", "Memo", "ID"])
     sheet.append(["2026-10-12", "(125000)", None, "Cash debit", "BANK-XLSX"])
     path = tmp_path / "bank.xlsx"

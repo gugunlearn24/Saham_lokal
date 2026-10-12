@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 import uuid
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -318,8 +319,8 @@ def test_split_with_no_active_ticker_lots_still_records_action(
 )
 def test_split_rejects_non_positive_or_non_integer_ratios_without_changes(
     connection: sqlite3.Connection,
-    multiplier: float,
-    divisor: float,
+    multiplier: Any,
+    divisor: Any,
 ) -> None:
     _create_lot(
         connection,

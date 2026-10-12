@@ -180,7 +180,7 @@ def test_sell_rejects_non_integer_monetary_input(connection: sqlite3.Connection)
             broker_fee=2_000,
             exchange_levy=500,
             pph_final=1_000,
-            cost_basis=800_000.5,
+            cost_basis=800_000.5,  # type: ignore[arg-type]
             trade_date="2026-10-12",
         )
 

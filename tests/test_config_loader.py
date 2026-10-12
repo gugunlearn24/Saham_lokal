@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from src.config.config_loader import load_brokers_config, load_rules_config
 from src.config.schema_validator import (

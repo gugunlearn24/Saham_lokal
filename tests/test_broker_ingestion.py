@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from openpyxl import Workbook
+from openpyxl import Workbook  # type: ignore[import-untyped]
 
 from src.db.migrator import run_migrations
 from src.ingestion.broker_csv_parser import ingest_broker_file, load_trade_rows
@@ -176,6 +176,7 @@ def test_parses_ipot_csv_date_decimal_separators_and_share_quantity(
 def test_parses_xlsx_broker_statement(tmp_path: Path) -> None:
     workbook = Workbook()
     sheet = workbook.active
+    assert sheet is not None
     sheet.append(STOCKBIT_HEADERS)
     sheet.append(_stockbit_row(action="Sell", ticker="tlkm", reference_id="SB-XLSX"))
     sheet.append([None] * len(STOCKBIT_HEADERS))

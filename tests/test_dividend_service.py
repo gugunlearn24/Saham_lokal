@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -119,7 +120,7 @@ def test_dividend_is_not_accrued_before_payment_and_posts_no_receivable(
 )
 def test_rejects_invalid_net_dividend_amount_without_persisting_journal(
     connection: sqlite3.Connection,
-    net_cash_received: float,
+    net_cash_received: Any,
 ) -> None:
     with pytest.raises(DividendBookingError):
         book_cash_dividend(

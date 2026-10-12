@@ -33,7 +33,7 @@ def _normalize_path(value: str | Path | None, *, default: Path, name: str) -> Pa
 
 
 def _utc_timestamp() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # noqa: UP017 -- Python 3.10 compatibility
 
 
 def _sha256_bytes(payload: bytes) -> str:

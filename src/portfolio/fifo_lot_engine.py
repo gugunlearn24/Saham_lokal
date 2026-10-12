@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
-
-from src.db.connection import get_connection
 
 
 class FIFOValidationError(ValueError):
@@ -84,7 +82,7 @@ def liquidate_fifo_lots(connection, *, ticker: str, shares_to_sell: int, disposa
         available = int(lot["remaining_shares"])
         liquidated = min(available, remaining_to_sell)
         cost_basis_per_share = float(lot["cost_per_share"])
-        realized_pnl = int(round((selling_price_per_share - cost_basis_per_share) * liquidated))
+        realized_pnl = round((selling_price_per_share - cost_basis_per_share) * liquidated)
 
         new_remaining = available - liquidated
         if new_remaining <= 0:
@@ -113,7 +111,8 @@ def liquidate_fifo_lots(connection, *, ticker: str, shares_to_sell: int, disposa
                 cost_basis_per_share,
                 selling_price_per_share,
                 realized_pnl,
-                disposal_date or datetime.utcnow().strftime("%Y-%m-%d"),
+                disposal_date
+                or datetime.now(timezone.utc).strftime("%Y-%m-%d"),  # noqa: UP017 -- keep Python 3.10 compatibility
             ),
         )
 

@@ -10,7 +10,6 @@ from typing import Any
 
 from src.db.connection import get_connection
 
-
 DATE_CANDIDATE_FORMATS = (
     "%Y-%m-%d",
     "%d/%m/%Y",
@@ -57,15 +56,14 @@ def _parse_amount(raw_value: Any) -> int:
     elif "," in text:
         text = text.replace(",", ".")
 
-    if text.startswith("+"):
-        text = text[1:]
+    text = text.removeprefix("+")
 
     try:
         value = Decimal(text)
     except InvalidOperation as exc:
         raise ValueError(f"Unable to parse bank amount: {raw_value!r}") from exc
 
-    integer_value = int(value.quantize(Decimal("1")))
+    integer_value = int(value.quantize(Decimal(1)))
     return -integer_value if is_negative else integer_value
 
 
@@ -76,7 +74,7 @@ def _read_csv_rows(file_path: str | Path) -> list[dict[str, Any]]:
 
 def _read_xlsx_rows(file_path: str | Path) -> list[dict[str, Any]]:
     try:
-        from openpyxl import load_workbook
+        from openpyxl import load_workbook  # type: ignore[import-untyped]
     except ImportError as exc:
         raise RuntimeError(
             "XLSX support requires openpyxl; install it with: pip install openpyxl"
@@ -84,6 +82,9 @@ def _read_xlsx_rows(file_path: str | Path) -> list[dict[str, Any]]:
 
     workbook = load_workbook(file_path, read_only=True, data_only=True)
     sheet = workbook.active
+    if sheet is None:
+        workbook.close()
+        raise ValueError("Workbook has no active worksheet.")
     rows = list(sheet.iter_rows(values_only=True))
     if not rows:
         return []

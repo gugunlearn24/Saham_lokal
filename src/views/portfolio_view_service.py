@@ -4,7 +4,6 @@ import sqlite3
 from datetime import date, datetime
 from typing import Any
 
-
 DEFAULT_STALE_DAYS = 7
 
 
@@ -161,7 +160,7 @@ def build_portfolio_dashboard(connection) -> dict[str, Any]:
         "pending_clearance": pending_positions,
         "stale_data_warning_tickers": stale_warnings,
         "warnings": [
-            f"Unsettled / Pending RDN" if pending_positions else None,
+            "Unsettled / Pending RDN" if pending_positions else None,
             "Stale Data Warning" if stale_warnings else None,
         ],
     }

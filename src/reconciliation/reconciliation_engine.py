@@ -4,6 +4,7 @@ import hashlib
 import json
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from src.db.connection import get_connection
@@ -136,7 +137,10 @@ def _create_journal_entry_for_trade(connection, trade_row, bank_row) -> str:
     return entry_id
 
 
-def reconcile_trades(db_path: str | None = None, rounding_tolerance_idr: int = ROUNDING_TOLERANCE_IDR):
+def reconcile_trades(
+    db_path: str | Path | None = None,
+    rounding_tolerance_idr: int = ROUNDING_TOLERANCE_IDR,
+):
     connection = get_connection(db_path) if db_path is not None else get_connection()
     rows = _fetch_pending_broker_rows(connection)
     bank_rows = _fetch_bank_rows(connection)
