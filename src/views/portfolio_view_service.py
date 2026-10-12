@@ -28,14 +28,25 @@ def get_active_positions(connection) -> list[dict[str, Any]]:
     rows = connection.execute(
         """
         SELECT
-            ticker,
-            SUM(remaining_shares) AS total_shares,
-            SUM(remaining_shares * cost_per_share) AS total_cost_basis,
-            MAX(CAST(strftime('%Y-%m-%d', acquired_date) AS TEXT)) AS latest_acquired_date
-        FROM stock_lots
-        WHERE status IN ('OPEN', 'PARTIALLY_CLOSED')
-        GROUP BY ticker
-        ORDER BY ticker ASC
+            lots.ticker,
+            SUM(lots.remaining_shares) AS total_shares,
+            SUM(lots.remaining_shares * lots.cost_per_share) AS total_cost_basis,
+            MAX(CAST(strftime('%Y-%m-%d', lots.acquired_date) AS TEXT)) AS latest_acquired_date,
+            evaluation.evaluation_date,
+            evaluation.fundamental_status,
+            evaluation.technical_status,
+            evaluation.overall_signal
+        FROM stock_lots AS lots
+        LEFT JOIN evaluation_snapshots AS evaluation
+            ON evaluation.ticker = lots.ticker
+            AND evaluation.evaluation_date = (
+                SELECT MAX(latest.evaluation_date)
+                FROM evaluation_snapshots AS latest
+                WHERE latest.ticker = lots.ticker
+            )
+        WHERE lots.status IN ('OPEN', 'PARTIALLY_CLOSED')
+        GROUP BY lots.ticker
+        ORDER BY lots.ticker ASC
         """
     ).fetchall()
 
@@ -84,6 +95,10 @@ def get_active_positions(connection) -> list[dict[str, Any]]:
                 "market_value": market_value,
                 "unrealized_pnl": unrealized_pnl,
                 "stale_data_warning": stale_warning,
+                "evaluation_date": row["evaluation_date"],
+                "fundamental_status": row["fundamental_status"],
+                "technical_status": row["technical_status"],
+                "overall_signal": row["overall_signal"],
             }
         )
 
