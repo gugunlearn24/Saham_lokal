@@ -4,9 +4,9 @@ import csv
 import json
 import uuid
 from datetime import datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from src.config.config_loader import load_brokers_config
 from src.db.connection import get_connection
@@ -70,9 +70,14 @@ def _resolve_broker_config(broker_id: str, config_path: str | Path = DEFAULT_CON
     raise ValueError(f"Unknown broker id '{broker_id}'. Expected one of: {[b.get('broker_id') for b in brokers]}")
 
 
-def _read_rows_from_csv(file_path: str | Path) -> list[dict[str, Any]]:
-    with Path(file_path).open("r", encoding="utf-8", newline="") as handle:
-        return list(csv.DictReader(handle))
+def _read_rows_from_csv(
+    file_path: str | Path,
+    *,
+    delimiter: str = ",",
+    encoding: str = "utf-8",
+) -> list[dict[str, Any]]:
+    with Path(file_path).open("r", encoding=encoding, newline="") as handle:
+        return list(csv.DictReader(handle, delimiter=delimiter))
 
 
 def _read_rows_from_xlsx(file_path: str | Path) -> list[dict[str, Any]]:
@@ -103,7 +108,11 @@ def load_trade_rows(file_path: str | Path, broker_id: str, config_path: str | Pa
     broker = _resolve_broker_config(broker_id, config_path)
     path = Path(file_path)
     if path.suffix.lower() == ".csv":
-        raw_rows = _read_rows_from_csv(path)
+        raw_rows = _read_rows_from_csv(
+            path,
+            delimiter=broker["delimiter"],
+            encoding=broker["encoding"],
+        )
     elif path.suffix.lower() in {".xlsx", ".xlsm"}:
         raw_rows = _read_rows_from_xlsx(path)
     else:
