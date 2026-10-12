@@ -3,13 +3,28 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
+from decimal import Decimal, InvalidOperation
 from typing import Any
-
-from src.db.connection import get_connection
 
 
 class LedgerValidationError(ValueError):
     pass
+
+
+def _coerce_idr_amount(value: Any, field_name: str) -> int:
+    if isinstance(value, bool):
+        raise LedgerValidationError(f"{field_name} must be a whole Rupiah amount.")
+    try:
+        amount = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        raise LedgerValidationError(
+            f"{field_name} must be a whole Rupiah amount."
+        ) from None
+    if not amount.is_finite() or amount != amount.to_integral_value():
+        raise LedgerValidationError(f"{field_name} must be a whole Rupiah amount.")
+    if amount < 0:
+        raise LedgerValidationError(f"{field_name} cannot be negative.")
+    return int(amount)
 
 
 def _ensure_account(connection, account_id: str, account_name: str, account_type: str) -> None:
@@ -55,8 +70,14 @@ def create_journal_entry(
     normalized_legs: list[dict[str, Any]] = []
     for leg in legs:
         account_id = str(leg["account_id"])
-        debit_amount = int(leg.get("debit_amount", 0) or 0)
-        credit_amount = int(leg.get("credit_amount", 0) or 0)
+        debit_amount = _coerce_idr_amount(
+            leg.get("debit_amount", 0) or 0,
+            f"Debit amount for {account_id}",
+        )
+        credit_amount = _coerce_idr_amount(
+            leg.get("credit_amount", 0) or 0,
+            f"Credit amount for {account_id}",
+        )
 
         if debit_amount == 0 and credit_amount == 0:
             raise LedgerValidationError(f"Journal leg for {account_id} cannot be zero on both sides.")
@@ -127,6 +148,7 @@ def validate_cash_balance(connection, account_id: str = "ASSET:RDN_CASH") -> int
 
 
 def assert_sufficient_cash_for_purchase(connection, amount: int, account_id: str = "ASSET:RDN_CASH") -> None:
+    amount = _coerce_idr_amount(amount, "Purchase amount")
     available_cash = validate_cash_balance(connection, account_id)
     if available_cash < amount:
         raise LedgerValidationError(
