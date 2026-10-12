@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Iterable
 
 
@@ -54,11 +54,11 @@ def parse_eod_payload(ticker: str, payload: dict[str, Any]) -> list[dict[str, An
         rows.append(
             {
                 "ticker": ticker,
-                "price_date": datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d"),
+                "price_date": datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d"),
                 "raw_close": float(raw_close) if raw_close is not None else float(adjusted_close),
                 "adjusted_close": float(adjusted_close) if adjusted_close is not None else float(raw_close),
                 "volume": volume_values[index] if index < len(volume_values) else None,
-                "fetched_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                "fetched_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
     return rows
@@ -82,7 +82,8 @@ def upsert_market_prices(connection: sqlite3.Connection, rows: Iterable[dict[str
                 float(row["raw_close"]),
                 float(row["adjusted_close"]),
                 row.get("volume"),
-                row.get("fetched_at") or datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                row.get("fetched_at")
+                or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             ),
         )
 
