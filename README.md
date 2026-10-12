@@ -1,3 +1,5 @@
+[![Quality Gate CI](https://github.com/gugunlearn24/Saham_lokal/actions/workflows/ci.yml/badge.svg)](https://github.com/gugunlearn24/Saham_lokal/actions/workflows/ci.yml)
+
 # Portfolio Management Engine (`Saham_lokal`)
 
 Sistem mesin portofolio berbasis Python dengan arsitektur modular, validasi ketat, dan penegakan akuntansi entri-ganda (double-entry ledger).
