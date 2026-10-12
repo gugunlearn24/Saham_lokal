@@ -64,12 +64,12 @@ def upsert_fundamental_snapshot(
     """Insert a quarterly fundamental snapshot or update it only after explicit confirmation."""
     normalized_ticker = _normalize_ticker(ticker)
 
-    if not isinstance(fiscal_year, int):
+    if isinstance(fiscal_year, bool) or not isinstance(fiscal_year, int):
         raise FundamentalDataError("fiscal_year must be an integer.")
     if fiscal_year <= 0:
         raise FundamentalDataError("fiscal_year must be a positive integer.")
 
-    if not isinstance(fiscal_quarter, int):
+    if isinstance(fiscal_quarter, bool) or not isinstance(fiscal_quarter, int):
         raise FundamentalDataError("fiscal_quarter must be an integer.")
     if not 1 <= fiscal_quarter <= 4:
         raise FundamentalDataError("fiscal_quarter must be between 1 and 4.")
